@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeeMa ❤️</title>
+<style>
+:root{
+  --bg:#020b12;
+  --deep:#041520;
+  --teal:#0d7377;
+  --teal-l:#14a098;
+  --gold:#e8b86d;
+  --gold-l:#f5d08a;
+  --rose:#d4617a;
+  --rose-l:#e8899a;
+  --text:#eef4f7;
+  --muted:rgba(220,240,245,0.55);
+  --faint:rgba(220,240,245,0.28);
+  --card:rgba(255,255,255,0.035);
+  --border:rgba(14,115,119,0.35);
+  --font-d:'Georgia','Times New Roman',serif;
+  --font-b:'Segoe UI',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);overflow-x:hidden;}
+
+/* ── CANVAS ── */
+#starfield{position:fixed;inset:0;pointer-events:none;z-index:0;}
+
+/* ══════════════════════════════
+   LOCK SCREEN
+══════════════════════════════ */
+#lockscreen{
+  position:fixed;inset:0;z-index:200;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:24px;text-align:center;
+  background:radial-gradient(ellipse at 50% 55%,#051e2e 0%,#020b12 70%);
+  transition:opacity 0.9s ease,transform 0.9s ease;
+}
+#lockscreen.gone{opacity:0;transform:scale(1.05);pointer-events:none;}
+
+.ls-eyebrow{
+  font-size:10px;letter-spacing:5px;text-transform:uppercase;
+  color:var(--teal-l);margin-bottom:20px;
+}
+
+/* Heart lock SVG */
+.heart-lock-wrap{
+  position:relative;width:120px;height:120px;
+  margin:0 auto 24px;
+  animation:heartpulse 3.5s ease-in-out infinite;
+}
+@keyframes heartpulse{
+  0%,100%{filter:drop-shadow(0 0 12px rgba(212,97,122,0.5));}
+  50%{filter:drop-shadow(0 0 28px rgba(212,97,122,0.85));}
+}
+.heart-lock-wrap svg{width:100%;height:100%;}
+
+.ls-title{
+  font-family:var(--font-d);font-style:italic;
+  font-size:clamp(1.8rem,6vw,2.8rem);
+  color:var(--text);
+  line-height:1.2;margin-bottom:10px;
+}
+.ls-sub{
+  font-size:0.9rem;color:var(--muted);
+  font-style:italic;max-width:440px;
+  line-height:1.7;margin-bottom:32px;
+}
+
+/* countdown */
+.cd-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:32px;}
+.cd-box{
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);border-radius:14px;
+  padding:12px 18px;min-width:64px;backdrop-filter:blur(8px);
+}
+.cd-n{font-size:2.2rem;font-weight:700;color:var(--gold);display:block;line-height:1;font-variant-numeric:tabular-nums;}
+.cd-l{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--faint);margin-top:4px;}
+
+/* code input */
+.code-label{
+  font-size:0.8rem;color:var(--muted);letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:12px;
+}
+.code-wrap{
+  display:flex;gap:10px;flex-wrap:wrap;
+  justify-content:center;margin-bottom:12px;
+}
+.code-wrap input{
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px 16px;
+  color:var(--text);
+  font-size:1rem;
+  font-family:var(--font-b);
+  width:140px;text-align:center;
+  outline:none;
+  transition:border-color 0.25s,background 0.25s;
+  caret-color:var(--gold);
+}
+.code-wrap input::placeholder{color:var(--faint);}
+.code-wrap input:focus{border-color:var(--teal-l);background:rgba(14,115,119,0.12);}
+.code-wrap input.wrong{border-color:var(--rose)!important;animation:shake 0.4s ease;}
+.code-wrap input.right{border-color:#3ecf8e!important;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}
+
+}
+.code-hint{font-size:0.75rem;color:var(--faint);font-style:italic;margin-bottom:18px;}
+.unlock-btn{
+  padding:14px 40px;border:none;border-radius:60px;
+  font-size:1rem;font-weight:600;cursor:pointer;
+  background:linear-gradient(135deg,var(--teal),var(--rose));
+  color:white;
+  box-shadow:0 8px 28px rgba(13,115,119,0.4);
+  transition:all 0.3s;font-family:var(--font-b);
+}
+.unlock-btn:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 14px 36px rgba(13,115,119,0.55);}
+.err-msg{
+  font-size:0.8rem;color:var(--rose-l);
+  margin-top:10px;min-height:18px;font-style:italic;
+}
+
+/* birthday-now state */
+#bday-now-msg{display:none;margin-bottom:24px;}
+#bday-now-msg p{
+  font-size:1.3rem;color:var(--gold);
+  animation:gpulse 1.2s ease-in-out infinite;
+}
+@keyframes gpulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
+
+/* ══════════════════════════════
+   MAIN PAGE
+══════════════════════════════ */
+#mainpage{opacity:0;transition:opacity 1.2s ease;}
+#mainpage.show{opacity:1;}
+
+.petals-c{position:fixed;inset:0;pointer-events:none;z-index:1;}
+
+/* HERO */
+.hero{
+  position:relative;z-index:2;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:40px 24px;
+}
+.hero-glow{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse at 20% 40%,rgba(13,115,119,0.22) 0%,transparent 55%),
+    radial-gradient(ellipse at 80% 60%,rgba(212,97,122,0.18) 0%,transparent 55%),
+    radial-gradient(ellipse at 50% 90%,rgba(232,184,109,0.1) 0%,transparent 50%);
+  animation:gbreathe 9s ease-in-out infinite;
+}
+@keyframes gbreathe{0%,100%{opacity:0.6;}50%{opacity:1;}}
+
+.hero>*:not(.hero-glow){position:relative;z-index:1;}
+
+.hero-badge{
+  display:inline-block;
+  background:rgba(13,115,119,0.18);
+  border:1px solid rgba(14,115,119,0.4);
+  border-radius:60px;padding:6px 22px;
+  font-size:11px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--teal-l);margin-bottom:22px;
+}
+.hero-title{
+  font-family:var(--font-d);font-style:italic;
+  font-size:clamp(3rem,10vw,6.5rem);
+  background:linear-gradient(140deg,var(--gold-l) 0%,var(--teal-l) 50%,var(--rose-l) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  background-size:200% 200%;
+  animation:gshift 7s ease-in-out infinite;
+  line-height:1.1;margin-bottom:6px;
+}
+@keyframes gshift{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+.hero-for{
+  font-size:clamp(1rem,2.5vw,1.3rem);
+  color:var(--gold);font-style:italic;
+  letter-spacing:1px;margin-bottom:20px;
+  font-family:var(--font-d);
+}
+.hero-verse{
+  font-size:clamp(0.9rem,2vw,1.05rem);
+  color:var(--muted);font-style:italic;
+  max-width:520px;line-height:1.9;margin-bottom:36px;
+}
+.arrow-down{
+  color:var(--faint);font-size:1.5rem;
+  animation:abounce 2.5s ease infinite;
+  text-decoration:none;cursor:pointer;
+}
+@keyframes abounce{0%,100%{transform:translateY(0);}50%{transform:translateY(9px);}}
+
+/* SECTIONS */
+.sec{position:relative;z-index:2;padding:70px 24px;max-width:940px;margin:0 auto;}
+.sec-ey{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--teal-l);text-align:center;margin-bottom:8px;}
+.sec-h{font-family:var(--font-d);font-style:italic;font-size:clamp(1.5rem,4vw,2.2rem);color:var(--text);text-align:center;margin-bottom:40px;}
+.divline{width:50px;height:1px;background:linear-gradient(90deg,transparent,var(--teal),transparent);margin:0 auto 40px;}
+
+/* TIMELINE */
+.tl{position:relative;max-width:660px;margin:0 auto;}
+.tl::before{
+  content:'';position:absolute;left:50%;transform:translateX(-50%);
+  top:0;bottom:0;width:1px;
+  background:linear-gradient(to bottom,transparent,var(--border) 8%,var(--border) 92%,transparent);
+}
+@media(max-width:580px){.tl::before{left:18px;}}
+
+.ti{
+  display:flex;gap:24px;margin-bottom:40px;align-items:flex-start;
+  opacity:0;transform:translateY(20px);
+  transition:opacity 0.55s ease,transform 0.55s ease;
+}
+.ti.vis{opacity:1;transform:translateY(0);}
+.ti:nth-child(odd){flex-direction:row;}
+.ti:nth-child(even){flex-direction:row-reverse;}
+@media(max-width:580px){.ti,.ti:nth-child(even){flex-direction:row;padding-left:40px;}}
+
+.ti-side{flex:1;}
+.ti:nth-child(odd) .ti-side{text-align:right;}
+.ti:nth-child(even) .ti-side{text-align:left;}
+@media(max-width:580px){.ti-side,.ti:nth-child(odd) .ti-side{text-align:left;}}
+
+.ti-dot{
+  flex-shrink:0;width:36px;height:36px;border-radius:50%;
+  background:var(--deep);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;position:relative;z-index:1;
+}
+.ti-spacer{flex:1;}
+
+.ti-date{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
+.ti-title{
+  font-family:var(--font-d);font-style:italic;
+  font-size:1rem;color:var(--text);margin-bottom:5px;line-height:1.35;
+}
+.ti-desc{font-size:0.82rem;color:var(--muted);line-height:1.65;}
+.ti-tag{
+  display:inline-block;
+  background:rgba(13,115,119,0.15);
+  border:1px solid rgba(14,115,119,0.3);
+  border-radius:30px;padding:2px 11px;
+  font-size:0.7rem;color:var(--teal-l);margin-top:6px;
+}
+
+/* GALLERY */
+.gal-wrap{max-width:400px;margin:0 auto;}
+.sl-frame{
+  width:100%;aspect-ratio:3/4;border-radius:22px;
+  overflow:hidden;position:relative;
+  box-shadow:0 0 50px rgba(13,115,119,0.3),0 0 0 1px rgba(14,115,119,0.2);
+}
+.sl-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 0.8s;}
+.sl-img.on{opacity:1;}
+.sl-ph{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#071c2c,#030d16);gap:12px;
+}
+.sl-ph .ph-ic{font-size:48px;opacity:0.3;}
+.sl-ph p{color:var(--faint);font-size:0.8rem;text-align:center;padding:0 20px;}
+.sl-ctrl{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;}
+.sl-btn{
+  background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  color:var(--text);border-radius:50%;width:38px;height:38px;
+  font-size:0.95rem;cursor:pointer;transition:background 0.2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.sl-btn:hover{background:rgba(14,115,119,0.25);}
+.sl-dots{display:flex;gap:6px;}
+.sdot{width:6px;height:6px;border-radius:50%;background:rgba(14,115,119,0.25);border:1px solid rgba(14,115,119,0.4);cursor:pointer;transition:all 0.25s;}
+.sdot.on{background:var(--teal-l);transform:scale(1.4);}
+.ph-note{text-align:center;color:var(--faint);font-size:0.75rem;font-style:italic;margin-top:12px;}
+
+/* WISHES */
+.wg{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;max-width:780px;margin:0 auto;
+}
+@media(max-width:520px){.wg{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.w-hint{text-align:center;color:var(--faint);font-size:0.76rem;font-style:italic;margin-bottom:18px;}
+.wb{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;cursor:pointer;overflow:hidden;
+  backdrop-filter:blur(8px);transition:border-color 0.25s,background 0.25s;
+  user-select:none;
+}
+.wb:hover{border-color:rgba(14,115,119,0.5);}
+.wb.open{background:rgba(13,115,119,0.12);border-color:var(--teal-l);}
+.wh{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 12px 16px;text-align:center;}
+.wi{font-size:2rem;line-height:1;}
+.wl{font-size:0.85rem;font-weight:600;color:#a8d8dc;line-height:1.3;}
+.wb.open .wl{color:#c8ecef;}
+.wc{display:none;padding:0 14px 16px;font-size:0.8rem;color:var(--muted);line-height:1.7;text-align:center;animation:fadeup 0.3s ease;}
+.wb.open .wc{display:block;}
+
+/* MESSAGE */
+.msg-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:22px;padding:42px 34px;
+  backdrop-filter:blur(12px);text-align:center;
+  max-width:700px;margin:0 auto;
+}
+@media(max-width:460px){.msg-card{padding:26px 18px;}}
+.msg-t{
+  font-family:var(--font-d);font-style:italic;
+  font-size:clamp(0.95rem,2.1vw,1.1rem);
+  line-height:2;color:rgba(220,240,245,0.88);
+  white-space:pre-line;
+}
+
+/* LETTER */
+.ltr-center{text-align:center;}
+.open-btn{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:15px 40px;border:none;border-radius:60px;
+  font-size:0.95rem;font-weight:600;cursor:pointer;
+  background:linear-gradient(135deg,var(--teal),var(--rose));
+  color:white;box-shadow:0 8px 28px rgba(13,115,119,0.35);
+  transition:all 0.3s;font-family:var(--font-b);
+}
+.open-btn:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 14px 36px rgba(13,115,119,0.5);}
+.open-btn:disabled{opacity:0.5;cursor:default;transform:none;}
+#letter{
+  display:none;margin-top:32px;
+  background:rgba(255,255,255,0.035);
+  border:1px solid rgba(14,115,119,0.22);
+  border-radius:20px;padding:38px 32px;
+  text-align:left;animation:fadeup 0.7s ease;
+  max-width:700px;margin-left:auto;margin-right:auto;
+}
+@media(max-width:460px){#letter{padding:24px 16px;}}
+#letter h3{
+  font-family:var(--font-d);font-style:italic;
+  font-size:1.2rem;color:var(--gold);
+  text-align:center;margin-bottom:20px;
+}
+.lbody{
+  font-family:var(--font-d);font-style:italic;
+  font-size:1.02rem;line-height:2.1;
+  color:rgba(220,240,245,0.87);white-space:pre-line;
+}
+.lsign{margin-top:22px;text-align:right;font-style:italic;color:var(--gold);font-size:0.9rem;}
+
+@keyframes fadeup{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+/* SONG */
+.song-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:22px;padding:36px 30px;
+  backdrop-filter:blur(12px);max-width:700px;margin:0 auto;
+  text-align:center;
+}
+.song-title{
+  font-family:var(--font-d);font-style:italic;
+  font-size:1.4rem;color:var(--gold);margin-bottom:6px;
+}
+.song-sub{font-size:0.78rem;color:var(--faint);letter-spacing:2px;text-transform:uppercase;margin-bottom:24px;}
+.lyrics{
+  font-family:var(--font-d);font-style:italic;
+  font-size:0.95rem;line-height:2;
+  color:var(--muted);white-space:pre-line;text-align:left;
+}
+.lyric-section{
+  font-size:0.72rem;letter-spacing:3px;text-transform:uppercase;
+  color:var(--teal-l);margin:18px 0 8px;
+}
+
+/* MUSIC BTN */
+#mbtn{
+  position:fixed;bottom:24px;right:24px;z-index:300;
+  width:50px;height:50px;border-radius:50%;border:none;
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--teal),var(--rose));
+  color:white;font-size:1.3rem;
+  box-shadow:0 6px 20px rgba(13,115,119,0.4);
+  transition:all 0.3s;display:flex;align-items:center;justify-content:center;
+}
+#mbtn:hover{transform:scale(1.1);}
+#mbtn.on{animation:mspin 3s linear infinite;}
+@keyframes mspin{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+
+/* FOOTER */
+footer{position:relative;z-index:2;padding:56px 24px 36px;text-align:center;}
+.ft-name{
+  font-family:var(--font-d);font-style:italic;
+  font-size:1.4rem;
+  background:linear-gradient(135deg,var(--gold-l),var(--teal-l));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:6px;
+}
+.ft-note{font-size:0.78rem;color:var(--faint);font-style:italic;}
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<!-- ══════════════════ LOCK ══════════════════ -->
+<div id="lockscreen">
+  <p class="ls-eyebrow">LeeMa — July 5, 2026</p>
+
+  <!-- Heart SVG lock -->
+  <div class="heart-lock-wrap">
+    <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#d4617a"/>
+          <stop offset="100%" stop-color="#0d7377"/>
+        </linearGradient>
+      </defs>
+      <!-- heart shape -->
+      <path d="M60 100 C60 100 10 65 10 38 C10 20 25 10 38 14 C47 17 54 24 60 32 C66 24 73 17 82 14 C95 10 110 20 110 38 C110 65 60 100 60 100Z"
+            fill="url(#hg)" opacity="0.85"/>
+      <!-- lock body -->
+      <rect x="46" y="55" width="28" height="22" rx="4" fill="#020b12" stroke="rgba(220,240,245,0.5)" stroke-width="1.2"/>
+      <!-- lock shackle -->
+      <path d="M51 55 V48 C51 41 69 41 69 48 V55" stroke="rgba(220,240,245,0.6)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <!-- keyhole -->
+      <circle cx="60" cy="64" r="3.5" fill="rgba(220,240,245,0.7)"/>
+      <rect x="58.5" y="64" width="3" height="5" rx="1" fill="rgba(220,240,245,0.7)"/>
+    </svg>
+  </div>
+
+  <h1 class="ls-title">Something waits<br>for you inside</h1>
+  <p class="ls-sub">A page made only for you.<br>Unlock it with a word that lives between us.</p>
+
+  <!-- Countdown -->
+  <div class="cd-row" id="cdrow"></div>
+
+  <!-- Birthday message (hidden until birthday) -->
+  <div id="bday-now-msg">
+    <p>🎂 Today is your day, Bangaram ✨</p>
+    <p style="font-size:0.85rem;color:var(--muted);margin-top:6px;font-style:italic;">Enter the code to open your gift</p>
+  </div>
+
+  <!-- Code input -->
+  <p class="code-label">Enter the unlock word</p>
+  <div class="code-wrap">
+    <input id="codeinput" type="text" placeholder="your word…" autocomplete="off" autocorrect="off" spellcheck="false"
+           onkeydown="if(event.key==='Enter')tryUnlock()">
+  </div>
+  <p class="code-hint">Hint: one of the words only you two know 🤫</p>
+  <button class="unlock-btn" onclick="tryUnlock()">Open ❤️</button>
+  <p class="err-msg" id="errmsg"></p>
+</div>
+
+<!-- ══════════════════ MAIN ══════════════════ -->
+<div id="mainpage">
+
+  <canvas class="petals-c" id="petalsc"></canvas>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-badge">LeeMa · ❤️ · July 5, 2026</div>
+    <h1 class="hero-title">Bangaram</h1>
+    <p class="hero-for">Happy Birthday, my kanna</p>
+    <p class="hero-verse">
+      We found each other through a screen,<br>
+      held on through silence,<br>
+      and met — finally — on a moving train.<br>
+      Nothing about us was ordinary.
+    </p>
+    <a class="arrow-down" href="#our-story">↓</a>
+  </section>
+
+  <!-- TIMELINE -->
+  <div class="sec" id="our-story">
+    <p class="sec-ey">The Story of Us</p>
+    <h2 class="sec-h">Every moment that shaped LeeMa</h2>
+    <div class="divline"></div>
+    <div class="tl" id="tl">
+
+      <div class="ti">
+        <div class="ti-side">
+          <p class="ti-date">6 Dec 2023</p>
+          <p class="ti-title">The first hello</p>
+          <p class="ti-desc">Two people online. No script. No plan. Just a conversation that quietly refused to end.</p>
+        </div>
+        <div class="ti-dot">🌐</div>
+        <div class="ti-spacer"></div>
+      </div>
+
+      <div class="ti">
+        <div class="ti-spacer"></div>
+        <div class="ti-dot">💬</div>
+        <div class="ti-side">
+          <p class="ti-date">2 Jan 2024</p>
+          <p class="ti-title">He said it first</p>
+          <p class="ti-desc">Telling someone how you truly feel takes a kind of courage that most people never find. He found it.</p>
+          <span class="ti-tag">Manu's feelings ❤️</span>
+        </div>
+      </div>
+
+      <div class="ti">
+        <div class="ti-side">
+          <p class="ti-date">10 Jan 2024</p>
+          <p class="ti-title">She answered</p>
+          <p class="ti-desc">Eight days of quiet. Then — her answer. And the world shifted just a little on its axis.</p>
+          <span class="ti-tag">Mutual ❤️</span>
+        </div>
+        <div class="ti-dot">❤️</div>
+        <div class="ti-spacer"></div>
+      </div>
+
+      <div class="ti">
+        <div class="ti-spacer"></div>
+        <div class="ti-dot">🌧️</div>
+        <div class="ti-side">
+          <p class="ti-date">12 Jun 2024</p>
+          <p class="ti-title">A storm passed through</p>
+          <p class="ti-desc">A fault. A silence. Distance like a wall. Some stories need a pause before they can continue.</p>
+        </div>
+      </div>
+
+      <div class="ti">
+        <div class="ti-side">
+          <p class="ti-date">Dec 2024</p>
+          <p class="ti-title">One message at a time</p>
+          <p class="ti-desc">No announcement. No grand return. Just two people quietly finding their way back — the way water always does.</p>
+          <span class="ti-tag">Again ✨</span>
+        </div>
+        <div class="ti-dot">🌱</div>
+        <div class="ti-spacer"></div>
+      </div>
+
+      <div class="ti">
+        <div class="ti-spacer"></div>
+        <div class="ti-dot">🚂</div>
+        <div class="ti-side">
+          <p class="ti-date">21 Feb 2026</p>
+          <p class="ti-title">The train to Tirupati</p>
+          <p class="ti-desc">After two years of words on a screen — a face. A real, breathing, present face. On a moving train going somewhere holy.</p>
+          <span class="ti-tag">First meeting 🙏</span>
+        </div>
+      </div>
+
+      <div class="ti">
+        <div class="ti-side">
+          <p class="ti-date">26 Mar 2026</p>
+          <p class="ti-title">She said "Manu"</p>
+          <p class="ti-desc">Only his mother and father ever called him that. And then — she did. Without explanation. As if she always had.</p>
+          <span class="ti-tag">Only Amma & Nanna said this</span>
+        </div>
+        <div class="ti-dot">🥹</div>
+        <div class="ti-spacer"></div>
+      </div>
+
+      <div class="ti">
+        <div class="ti-spacer"></div>
+        <div class="ti-dot">🏷️</div>
+        <div class="ti-side">
+          <p class="ti-date">Nov 2025</p>
+          <p class="ti-title">We named it LeeMa</p>
+          <p class="ti-desc">Le from Leela. Ma from Manoj. A word that didn't exist before us — and now belongs entirely to us.</p>
+          <span class="ti-tag">Our name 💫</span>
+        </div>
+      </div>
+
+      <div class="ti">
+        <div class="ti-side">
+          <p class="ti-date">30 Apr 2026</p>
+          <p class="ti-title">Kakinada → Coringa</p>
+          <p class="ti-desc">A plan for an hour or two. A day that refused to end. A wildlife sanctuary, the sound of water, and time that bent just for them.</p>
+          <span class="ti-tag">A whole day 🌿</span>
+        </div>
+        <div class="ti-dot">🌿</div>
+        <div class="ti-spacer"></div>
+      </div>
+
+      <div class="ti">
+        <div class="ti-spacer"></div>
+        <div class="ti-dot">🌟</div>
+        <div class="ti-side">
+          <p class="ti-date">Today</p>
+          <p class="ti-title">She stands, still</p>
+          <p class="ti-desc">She knew the odds. She saw the walls. She chose to stay anyway — not out of blindness, but because she understood something truer than circumstances.</p>
+          <span class="ti-tag">LeeMa — always</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GALLERY -->
+  <div class="sec">
+    <p class="sec-ey">Memories</p>
+    <h2 class="sec-h">Frames I want to keep forever</h2>
+    <div class="divline"></div>
+    <div class="gal-wrap">
+      <div class="sl-frame" id="slf">
+        <div class="sl-ph" id="slph">
+          <div class="ph-ic">📷</div>
+          <p>Add photos as <strong>images/photo1.jpg</strong> … <strong>photo5.jpg</strong></p>
+        </div>
+        <img src="images/photo1.jpg" class="sl-img" alt="">
+        <img src="images/photo2.jpg" class="sl-img" alt="">
+        <img src="images/photo3.jpg" class="sl-img" alt="">
+        <img src="images/photo4.jpg" class="sl-img" alt="">
+        <img src="images/photo5.jpg" class="sl-img" alt="">
+      </div>
+      <div class="sl-ctrl">
+        <button class="sl-btn" onclick="mvSlide(-1)">←</button>
+        <div class="sl-dots" id="sldots"></div>
+        <button class="sl-btn" onclick="mvSlide(1)">→</button>
+      </div>
+      <p class="ph-note">Place your photos in an <code>images/</code> folder ✨</p>
+    </div>
+  </div>
+
+  <!-- WISHES -->
+  <div class="sec">
+    <p class="sec-ey">Birthday Wishes</p>
+    <h2 class="sec-h">Seven things I wish for you</h2>
+    <div class="divline"></div>
+    <p class="w-hint">Tap a card to read</p>
+    <div class="wg" id="wg"></div>
+  </div>
+
+  <!-- MESSAGE FROM MANU -->
+  <div class="sec">
+    <p class="sec-ey">From Manu</p>
+    <h2 class="sec-h">What I want you to know</h2>
+    <div class="divline"></div>
+    <div class="msg-card">
+      <p class="msg-t">Bangaram,
+
+I didn't know what love could teach a person
+until you started teaching me.
+
+You showed me how to listen past the words.
+How to stay when leaving would be easier.
+How to be something worth being.
+
+You called me Manu — and I heard everything in it.
+The same sound my mother gave me at the beginning of my life,
+now in the voice of the person who makes it feel worth living.
+
+I carry your kanna, your bangaram,
+the way I carry my own name — close, quiet, and certain.
+
+This is your day.
+And I want you to know:
+every version of me that is good
+learned something from you.
+
+Happy Birthday. ❤️ — Manu</p>
+    </div>
+  </div>
+
+  <!-- SONG / LYRICS -->
+  <div class="sec">
+    <p class="sec-ey">Leelamanoj — Our Song</p>
+    <h2 class="sec-h">Words written for LeeMa</h2>
+    <div class="divline"></div>
+    <div class="song-card">
+      <p class="song-title">Leelamanoj</p>
+      <p class="song-sub">Shawn Mendes style · Written for us</p>
+      <div class="lyrics">
+<p class="lyric-section">Verse 1</p>
+In the stillness, before a thought is born
+A shimmer moves — soft and unadorned
+Leela stirs the quiet jest
+And breathes her joy into my chest
+
+<p class="lyric-section">Pre-Chorus</p>
+Manoj awakens, mind in flight
+A spark that dreams of form and light
+Together they weave the unseen stream
+The pulse of truth behind the dream
+
+<p class="lyric-section">Chorus</p>
+Leelamanoj — the name resounds
+Where silence sings and time unwinds
+The dance of mind, both free and kind
+The play of gods through human signs
+
+<p class="lyric-section">Bridge</p>
+No temple holds, no word defines
+The rhythm that through all hearts shines
+
+<p class="lyric-section">Outro</p>
+Leelamanoj — the endless art
+The thought that feels, the mind that's heart</div>
+    </div>
+  </div>
+
+  <!-- SECRET LETTER -->
+  <div class="sec">
+    <div class="ltr-center">
+      <p class="sec-ey">Only for you</p>
+      <h2 class="sec-h">One last thing…</h2>
+      <div class="divline"></div>
+      <button class="open-btn" id="lbtn" onclick="openLetter()">💌 Open the letter</button>
+      <div id="letter">
+        <h3>For my Bangaram — on this day ❤️</h3>
+        <p class="lbody">I have been thinking about what to write here
+for longer than you probably know.
+
+Because how do you put into words a thing
+that started as a message on a December afternoon
+and quietly grew into the safest place you've ever known?
+
+December 6th, 2023 — a stranger.
+January 2nd — a truth I finally said out loud.
+January 10th — you said it back,
+and I think some part of me has been exhaling ever since.
+
+Then came June — and the silence
+that felt like losing the ground beneath my feet.
+I won't pretend that didn't matter.
+It did. Deeply.
+
+But December came again.
+And you came back — or maybe we both did —
+one careful word at a time.
+
+February 21st, 2026.
+A train platform. Your face.
+After two years of only knowing the shape of your voice,
+I saw you — real, present, unhurried —
+on your way to Tirupati.
+I don't know what Tirupati gave you that day,
+but I know what that moment gave me.
+
+And then — March 26th.
+You called me Manu.
+
+Just that.
+One small word.
+
+The name my mother gave me.
+The name only the people who raised me used.
+And now you — as if you had always carried it.
+
+I didn't say much in that moment.
+But I want you to know what it meant:
+it meant you see me.
+Not a version of me I perform.
+Not the one who tries to be steady.
+The real one.
+
+April 30th — Kakinada. Coringa.
+One hour became a day.
+The mangroves and the water and the light
+and the particular quiet of being somewhere
+with the right person.
+I didn't want it to end.
+I think you know that.
+
+November — we named what we are.
+LeeMa.
+Le from you. Ma from me.
+A word that didn't exist in any language
+until we needed it.
+
+You told me once there may be no easy road ahead.
+You saw the walls clearly.
+And you stayed anyway.
+
+That is not naivety.
+That is a kind of love
+that most people spend their whole lives searching for.
+
+I am still learning how to deserve it.
+
+But on this birthday — your birthday —
+I want you to know:
+
+You are my kanna.
+You are my bangaram.
+You are the reason LeeMa means something.
+
+And no matter what road is ahead —
+this day, this love, this name —
+is real.
+
+Happy Birthday.
+
+Yours — always — Manu ❤️</p>
+        <p class="lsign">— Manu · LeeMa · always ❤️</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p class="ft-name">LeeMa ❤️</p>
+    <p class="ft-note">Made by Manu — for Bangaram · July 5, 2026</p>
+  </footer>
+
+</div><!-- /mainpage -->
+
+<audio id="aud" loop><source src="music/song.mp3" type="audio/mpeg"></audio>
+<button id="mbtn" onclick="toggleMusic()" title="Music">🎵</button>
+
+<script>
+/* ── STARS ── */
+(()=>{
+  const c=document.getElementById('starfield'),x=c.getContext('2d');
+  let W,H,st=[];
+  const rsz=()=>{W=c.width=innerWidth;H=c.height=innerHeight;};
+  rsz();window.addEventListener('resize',rsz);
+  for(let i=0;i<140;i++) st.push({x:Math.random()*2000,y:Math.random()*1200,r:Math.random()*1.1+0.2,a:Math.random()*6,s:Math.random()*0.35+0.08});
+  const draw=()=>{
+    x.clearRect(0,0,W,H);
+    st.forEach(s=>{
+      s.a+=s.s*0.012;
+      const al=0.1+Math.abs(Math.sin(s.a))*0.5;
+      x.beginPath();x.arc((s.x/2000)*W,(s.y/1200)*H,s.r,0,Math.PI*2);
+      x.fillStyle=`rgba(180,230,235,${al})`;x.fill();
+    });
+    requestAnimationFrame(draw);
+  };
+  draw();
+})();
+
+/* ── COUNTDOWN ── */
+const BDAY=new Date('2026-07-05T00:00:00');
+const pad=n=>String(n).padStart(2,'0');
+let cdDone=false;
+
+function renderCD(){
+  const now=new Date(),diff=BDAY-now;
+  const row=document.getElementById('cdrow');
+  if(diff<=0 && !cdDone){
+    cdDone=true;
+    row.style.display='none';
+    document.getElementById('bday-now-msg').style.display='block';
+    return;
+  }
+  if(cdDone) return;
+  const d=Math.floor(diff/864e5),h=Math.floor((diff%864e5)/36e5),m=Math.floor((diff%36e5)/6e4),s=Math.floor((diff%6e4)/1e3);
+  row.innerHTML=[['Days',d],['Hours',h],['Mins',m],['Secs',s]]
+    .map(([l,v])=>`<div class="cd-box"><span class="cd-n">${pad(v)}</span><span class="cd-l">${l}</span></div>`).join('');
+}
+setInterval(renderCD,1000);renderCD();
+
+/* ── LOCK / UNLOCK ── */
+const CODES=['leema','kanna','bangaram','leela'];
+
+function tryUnlock(){
+  const inp=document.getElementById('codeinput');
+  const val=inp.value.trim().toLowerCase();
+  const err=document.getElementById('errmsg');
+  if(CODES.includes(val)){
+    inp.classList.remove('wrong');inp.classList.add('right');
+    err.textContent='';
+    setTimeout(doUnlock,600);
+  } else {
+    inp.classList.remove('right');inp.classList.add('wrong');
+    err.textContent='That\'s not the word… try again 🤍';
+    setTimeout(()=>inp.classList.remove('wrong'),800);
+  }
+}
+
+function doUnlock(){
+  const ls=document.getElementById('lockscreen');
+  const mp=document.getElementById('mainpage');
+  ls.classList.add('gone');
+  mp.style.display='block';
+  setTimeout(()=>{
+    mp.classList.add('show');
+    initPetals();initSlideshow();initWishes();initTL();
+  },400);
+}
+
+/* ── PETALS ── */
+function initPetals(){
+  const c=document.getElementById('petalsc'),x=c.getContext('2d');
+  let W,H,pts=[];
+  const EM=['❤️','🌸','✨','💕','🌿','💫','🌺','💙'];
+  const rsz=()=>{W=c.width=innerWidth;H=c.height=innerHeight;};
+  rsz();window.addEventListener('resize',rsz);
+  const mk=(init)=>({x:Math.random()*W,y:init?Math.random()*H:H+30,sz:Math.random()*12+8,sp:Math.random()*0.75+0.25,dr:(Math.random()-0.5)*0.45,al:Math.random()*0.45+0.2,rot:Math.random()*Math.PI*2,rs:(Math.random()-0.5)*0.022,em:EM[Math.floor(Math.random()*EM.length)]});
+  for(let i=0;i<45;i++) pts.push(mk(true));
+  const draw=()=>{
+    x.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.y-=p.sp;p.x+=p.dr;p.rot+=p.rs;
+      if(p.y<-40){Object.assign(p,mk(false));p.x=Math.random()*W;}
+      x.save();x.globalAlpha=p.al;x.translate(p.x,p.y);x.rotate(p.rot);
+      x.font=`${p.sz}px serif`;x.textAlign='center';x.textBaseline='middle';
+      x.fillText(p.em,0,0);x.restore();
+    });
+    requestAnimationFrame(draw);
+  };
+  draw();
+}
+
+/* ── SLIDESHOW ── */
+function initSlideshow(){
+  const imgs=document.querySelectorAll('.sl-img');
+  const ph=document.getElementById('slph');
+  const dotsEl=document.getElementById('sldots');
+  let loaded=[],cur=0,tmr;
+  imgs.forEach((img,i)=>{
+    const t=new Image();
+    t.onload=()=>{
+      loaded.push(i);img.style.display='block';ph.style.display='none';
+      bDots();if(loaded.length===1){show(0);start();}
+    };
+    t.src=img.src;
+  });
+  function bDots(){
+    dotsEl.innerHTML='';
+    loaded.forEach((_,j)=>{
+      const d=document.createElement('div');d.className='sdot'+(j===0?' on':'');
+      d.onclick=()=>{show(j);restart();};dotsEl.appendChild(d);
+    });
+  }
+  function show(i){
+    if(!loaded.length)return;
+    imgs.forEach(im=>im.classList.remove('on'));
+    cur=((i%loaded.length)+loaded.length)%loaded.length;
+    imgs[loaded[cur]].classList.add('on');
+    document.querySelectorAll('.sdot').forEach((d,j)=>d.classList.toggle('on',j===cur));
+  }
+  function start(){tmr=setInterval(()=>show(cur+1),3500);}
+  function restart(){clearInterval(tmr);start();}
+  window.mvSlide=(dir)=>{if(loaded.length){show(cur+dir);restart();}};
+}
+
+/* ── WISHES ── */
+function initWishes(){
+  const data=[
+    {i:'🌊',l:'Peace in every storm',b:'May the parts of life that have been uncertain find their stillness this year. You deserve calm.'},
+    {i:'🌟',l:'Dreams that arrive',b:'Not someday dreams. The kind that show up in the middle of an ordinary Tuesday and stay.'},
+    {i:'💪',l:'Strength to stay yourself',b:'The world will try to reshape you. May you always know who you are — and stay her.'},
+    {i:'🌿',l:'More Coringa days',b:'Unplanned. Unhurried. Whole days that nobody expected to be beautiful — but were.'},
+    {i:'🤍',l:'Love without walls',b:'May the love that reaches you always be the kind that asks nothing in return for being real.'},
+    {i:'🎶',l:'A song just for you',b:'Leelamanoj. Written in your name. May it play somewhere in your chest on the hard days.'},
+    {i:'🏡',l:'A home in the world',b:'Wherever life takes you — may you always find a place where you are fully, completely yourself.'},
+  ];
+  const grid=document.getElementById('wg');let act=null;
+  data.forEach((w,i)=>{
+    const b=document.createElement('div');b.className='wb';
+    b.innerHTML=`<div class="wh"><div class="wi">${w.i}</div><div class="wl">${w.l}</div></div><div class="wc">${w.b}</div>`;
+    b.addEventListener('click',()=>{
+      if(act===i){b.classList.remove('open');act=null;}
+      else{grid.querySelectorAll('.wb').forEach(x=>x.classList.remove('open'));b.classList.add('open');act=i;}
+    });
+    grid.appendChild(b);
+  });
+}
+
+/* ── TIMELINE SCROLL ── */
+function initTL(){
+  const items=document.querySelectorAll('.ti');
+  const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');});},{threshold:0.18});
+  items.forEach(it=>obs.observe(it));
+}
+
+/* ── LETTER ── */
+function openLetter(){
+  document.getElementById('letter').style.display='block';
+  const b=document.getElementById('lbtn');b.textContent='💖 Reading…';b.disabled=true;
+  setTimeout(()=>document.getElementById('letter').scrollIntoView({behavior:'smooth',block:'start'}),120);
+}
+
+/* ── MUSIC ── */
+let mOn=false;
+function toggleMusic(){
+  const a=document.getElementById('aud'),b=document.getElementById('mbtn');
+  if(mOn){a.pause();b.textContent='🎵';b.classList.remove('on');}
+  else{a.play().catch(()=>{});b.textContent='🎶';b.classList.add('on');}
+  mOn=!mOn;
+}
+</script>
+</body>
+</html>
